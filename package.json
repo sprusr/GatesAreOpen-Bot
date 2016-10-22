@@ -19,6 +19,7 @@
   "dependencies": {
     "algoliasearch": "^3.18.1",
     "botbuilder": "^3.3.3",
-    "request": "^2.75.0"
+    "request": "^2.75.0",
+    "restify": "^4.1.1"
   }
 }

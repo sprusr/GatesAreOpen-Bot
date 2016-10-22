@@ -1,9 +1,16 @@
+var restify = require('restify');
 var builder = require('botbuilder');
 var algoliasearch = require('algoliasearch');
 var request = require('request');
 var secrets = require('./secrets.js');
 
-var connector = new builder.ConsoleConnector().listen();
+//var connector = new builder.ConsoleConnector().listen();
+
+var connector = new builder.ChatConnector({
+    appId: process.env.MICROSOFT_APP_ID || secrets.microsoft.appId,
+    appPassword: process.env.MICROSOFT_APP_PASSWORD || secrets.microsoft.appPassword
+});
+
 var bot = new builder.UniversalBot(connector);
 
 var recognizer = new builder.LuisRecognizer('https://api.projectoxford.ai/luis/v1/application?id=c564b0a7-bc68-4e0b-a45b-5b9deef4bc44&subscription-key=fe3cf5fde98f4dceb05b3fda0d3ca2ed&q=');
@@ -13,7 +20,15 @@ var dialog = new builder.IntentDialog({ recognizers: [recognizer] });
 var client = algoliasearch(secrets.algolia.applicationID, secrets.algolia.apiKey);
 var index = client.initIndex('stations');
 
-var apiUrl = 'http://localhost:8000/api/v1.0';
+var apiUrl = 'http://52.19.35.64:5000/api/v1.0';
+
+var server = restify.createServer();
+
+server.listen(process.env.port || process.env.PORT || 3000, function () {
+   console.log('%s listening to %s', server.name, server.url);
+});
+
+server.post('/api/messages', connector.listen());
 
 bot.dialog('/', dialog);
 
@@ -22,7 +37,7 @@ dialog.matches('Update station status', [
   postStatus,
   function (session, results) {
     if(results.station) {
-      session.send('Thanks for letting us know about the gates at ' + results.station.stationName + '!');
+      session.send('Thanks for the heads up!');
     } else {
       session.send(results.error);
     }
@@ -34,10 +49,10 @@ dialog.matches('Get station status', [
   getStatus,
   function (session, results) {
     if(results.station) {
-      if(result.station.gate.status == 0) {
-        session.send('The gates at ' + result.station.stationName + ' are reported to be closed');
+      if(results.station[0].gate.status == 0) {
+        session.send('The gates at ' + results.station[0].stationName + ' are reported to be closed');
       } else {
-        session.send('The gates at ' + result.station.stationName + ' are reported to be open!');
+        session.send('The gates at ' + results.station[0].stationName + ' are reported to be open!');
       }
     } else {
       session.send(results.error);
@@ -64,7 +79,7 @@ function searchForStation(session, args, next) {
     }
   }
 
-  switch (status) {
+  switch (statusString) {
     case 'closed':
       status = 0;
       break;
@@ -86,10 +101,12 @@ function searchForStation(session, args, next) {
 
 function getStatus(session, args, next) {
   if(args.crsCode) {
-    request.get(apiUrl + '/status/' + args.crsCode).on('response', function(response, body) {
-      next({ station: body });
-    }).on('error', function(error) {
-      next({ error: 'Something went wrong with the API...' });
+    request(apiUrl + '/status/' + args.crsCode, function(error, response, body) {
+      if(!error && body) {
+        next({ station: JSON.parse(body) });
+      } else {
+        next({ error: 'Something went wrong with the API...' });
+      }
     });
   } else {
     next({ error: 'Something went wrong...' });
@@ -97,11 +114,22 @@ function getStatus(session, args, next) {
 }
 
 function postStatus(session, args, next) {
-  if(args.crsCode && args.status) {
-    request.post(apiUrl + '/status').form({ crsCode: args.crsCode, gate: { status: args.status } }).on('response', function(response) {
-      next({ station: body });
-    }).on('error', function(error) {
-      next({ error: 'Something went wrong with the API...' });
+  if(args.crsCode && typeof args.status == 'number') {
+    request({
+      url: apiUrl + '/status/',
+      method: 'POST',
+      json: {
+        crsCode: args.crsCode,
+        gate: {
+          status: args.status
+        }
+      }
+    }, function(error, response, body) {
+      if(!error && body) {
+        next({ station: JSON.parse(body) });
+      } else {
+        next({ error: 'Something went wrong with the API...' });
+      }
     });
   } else {
     next({ error: 'Something went wrong...' });
