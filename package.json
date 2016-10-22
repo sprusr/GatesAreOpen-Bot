@@ -1,0 +1,22 @@
+{
+  "name": "gatesareopen-bot",
+  "version": "0.0.1",
+  "description": "Chatbot module of GatesAreOpen",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sprusr/GatesAreOpen-Bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sprusr/GatesAreOpen-Bot/issues"
+  },
+  "homepage": "https://github.com/sprusr/GatesAreOpen-Bot#readme",
+  "dependencies": {
+    "botbuilder": "^3.3.3"
+  }
+}
