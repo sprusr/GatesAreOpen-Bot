@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/sprusr/GatesAreOpen-Bot#readme",
   "dependencies": {
+    "algoliasearch": "^3.18.1",
     "botbuilder": "^3.3.3"
   }
 }
