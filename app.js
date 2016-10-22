@@ -101,9 +101,13 @@ function searchForStation(session, args, next) {
 
 function getStatus(session, args, next) {
   if(args.crsCode) {
-    request(apiUrl + '/status/' + args.crsCode, function(error, response, body) {
+    request({
+      url: apiUrl + '/status/' + args.crsCode,
+      method: 'GET',
+      json: true
+    }, function(error, response, body) {
       if(!error && body) {
-        next({ station: JSON.parse(body) });
+        next({ station: body });
       } else {
         next({ error: 'Something went wrong with the API...' });
       }
@@ -126,7 +130,7 @@ function postStatus(session, args, next) {
       }
     }, function(error, response, body) {
       if(!error && body) {
-        next({ station: JSON.parse(body) });
+        next({ station: body });
       } else {
         next({ error: 'Something went wrong with the API...' });
       }
