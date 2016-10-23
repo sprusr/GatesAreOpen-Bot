@@ -20,7 +20,7 @@ var dialog = new builder.IntentDialog({ recognizers: [recognizer] });
 var client = algoliasearch(secrets.algolia.applicationID, secrets.algolia.apiKey);
 var index = client.initIndex('stations');
 
-var apiUrl = 'http://52.19.35.64:5000/api/v1.0';
+var apiUrl = 'http://gatesareopen.com/api/v1.0';
 
 var server = restify.createServer();
 
